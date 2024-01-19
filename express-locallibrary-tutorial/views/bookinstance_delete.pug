@@ -1,0 +1,10 @@
+extends layout 
+
+block content
+
+    h1 #{title}: #{bookinstance.book.title}
+    p= bookinstance.due_back
+    p= bookinstance.status
+    h1 Are you sure you want to delete this bookinstance?
+    form(method='POST')
+        button.btn.btn-primary(type='submit') Delete

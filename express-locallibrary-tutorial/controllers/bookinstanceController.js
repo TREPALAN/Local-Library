@@ -32,7 +32,6 @@ exports.bookinstance_detail = asyncHandler(async (req, res, next) => {
   });
 });
 
-
 // Display BookInstance create form on GET.
 exports.bookinstance_create_get = asyncHandler(async (req, res, next) => {
   const allBooks = await Book.find({}, "title").sort({ title: 1 }).exec();
@@ -93,20 +92,47 @@ exports.bookinstance_create_post = [
 
 // Display BookInstance delete form on GET.
 exports.bookinstance_delete_get = asyncHandler(async (req, res, next) => {
-  res.send("NOT IMPLEMENTED: BookInstance delete GET");
+  const bookInstance = await BookInstance.findById(req.params.id)
+    .populate("book")
+    .exec();
+  res.render("bookinstance_delete", {
+    title: "Delete BookInstance",
+    bookinstance: bookInstance,
+  });
 });
 
 // Handle BookInstance delete on POST.
 exports.bookinstance_delete_post = asyncHandler(async (req, res, next) => {
-  res.send("NOT IMPLEMENTED: BookInstance delete POST");
+  const bookInstance = await BookInstance.findByIdAndDelete(
+    req.params.id
+  ).exec();
+  res.redirect("/catalog/bookinstances");
 });
 
 // Display BookInstance update form on GET.
 exports.bookinstance_update_get = asyncHandler(async (req, res, next) => {
-  res.send("NOT IMPLEMENTED: BookInstance update GET");
+  const bookInstance = await BookInstance.findById(req.params.id)
+    .populate("book")
+    .exec();
+  res.render("bookinstance_form", {
+    title: "Update BookInstance",
+    book_list: [bookInstance.book],
+    selected_book: bookInstance.book._id,
+    bookinstance: bookInstance,
+  });
 });
 
 // Handle bookinstance update on POST.
-exports.bookinstance_update_post = asyncHandler(async (req, res, next) => {
-  res.send("NOT IMPLEMENTED: BookInstance update POST");
-});
+exports.bookinstance_update_post = [
+  // Validate and sanitize fields.
+  body("book", "Book must be specified").trim().isLength({ min: 1 }).escape(),
+  body("imprint", "Imprint must be specified")
+    .trim()
+    .isLength({ min: 1 })
+    .escape(),
+  body("status").escape(),
+  body("due_back", "Invalid date")
+    .optional({ values: "falsy" })
+    .isISO8601()
+    .toDate(),
+];
