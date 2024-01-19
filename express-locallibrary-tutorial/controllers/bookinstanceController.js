@@ -135,4 +135,41 @@ exports.bookinstance_update_post = [
     .optional({ values: "falsy" })
     .isISO8601()
     .toDate(),
+  asyncHandler(async (req, res, next) => {
+    // Extract the validation errors from a request.
+    const errors = validationResult(req);
+
+    // Create a BookInstance object with escaped and trimmed data.
+    const bookInstance = new BookInstance({
+      book: req.body.book,
+      imprint: req.body.imprint,
+      status: req.body.status,
+      due_back: req.body.due_back,
+      _id: req.params.id,
+    });
+
+    if (!errors.isEmpty()) {
+      // Handle errors
+      const BookInstance = await BookInstance.findById(req.params.id)
+        .populate("book")
+        .exec();
+
+      res.render("bookinstance_form", {
+        title: "Update BookInstance",
+        book_list: [BookInstance.book],
+        selected_book: BookInstance.book._id,
+        bookinstance: BookInstance,
+        errors: errors.array(),
+      });
+      return;
+    } else {
+      // Data from form is valid
+      const theBookInstance = await BookInstance.findByIdAndUpdate(
+        req.params.id,
+        bookInstance,
+        {}
+      ).exec();
+      res.redirect(theBookInstance.url);
+    }
+  }),
 ];
